@@ -1,6 +1,7 @@
 package com.example.weatherapp.ui
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,34 +15,36 @@ import com.example.weatherapp.ui.theme.WeatherAppTheme
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.weatherapp.data.LocalWeatherRepository
+import com.example.weatherapp.data.RemoteWeatherRepository
 import com.example.weatherapp.data.RetrofitInstance
 import com.example.weatherapp.data.WeatherDatabase
-import com.example.weatherapp.data.WeatherRepository
 import com.example.weatherapp.data.scheduleWeatherWork
 
 
 class MainActivity : ComponentActivity() {
-//    private val viewModel: WeatherViewModel by viewModels()
     private lateinit var viewModel: WeatherViewModel
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         val database = WeatherDatabase.getDatabase(applicationContext)
         val weatherDao = database.weatherDao()
-        val repository = WeatherRepository(weatherDao, RetrofitInstance.api)
-        val factory = WeatherViewModelFactory(repository)
-        viewModel = ViewModelProvider(this, factory).get(WeatherViewModel::class.java)
+        val apiService = RetrofitInstance.api
+        val localRepository = LocalWeatherRepository(weatherDao)
+        val remoteRepository = RemoteWeatherRepository(apiService)
+        val viewModelFactory = WeatherViewModelFactory(localRepository, remoteRepository)
+        viewModel = ViewModelProvider(this, viewModelFactory).get(WeatherViewModel::class.java)
+
 
         setContent {
             WeatherAppTheme {
-                // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -56,7 +59,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun WeatherScreen(viewModel: WeatherViewModel = viewModel()) {
-    val weather = viewModel.weatherState.collectAsState().value
+    val weather by viewModel.weatherState.collectAsState()
 
     weather?.let {
         Column(
@@ -64,11 +67,11 @@ fun WeatherScreen(viewModel: WeatherViewModel = viewModel()) {
             verticalArrangement = Arrangement.Center,
             modifier = Modifier.fillMaxSize()
         ) {
-            Text(text = "City: ${weather.cityName}")
-            Text(text = "Temperature: ${weather.temperature} °C")
-            Text(text = "Description: ${weather.description}")
+            Text(text = "City: ${weather!!.cityName}")
+            Text(text = "Temperature: ${weather!!.temperature} °C")
+            Text(text = "Description: ${weather!!.description}")
             Image(
-                painter = painterResource(id = getWeatherIcon(weather.icon)),
+                painter = painterResource(id = getWeatherIcon(weather!!.icon)),
                 contentDescription = null,
                 modifier = Modifier.size(100.dp)
             )

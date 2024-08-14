@@ -1,5 +1,6 @@
 package com.example.weatherapp.data
 
+import android.util.Log
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
@@ -10,7 +11,8 @@ const val BASE_URL = "https://api.openweathermap.org/"
 interface WeatherApiService {
     @GET("data/2.5/weather")
     suspend fun getCurrentWeather(
-        @Query("q") cityName: String,
+        @Query("lat") cityLat: Double,
+        @Query("lon") cityLon: Double,
         @Query("appid") apiKey: String
     ): WeatherResponse
 }

@@ -11,13 +11,15 @@ class WeatherWorker(appContext: Context, workerParams: WorkerParameters) :
     CoroutineWorker(appContext, workerParams) {
 
     override suspend fun doWork(): Result {
-        val repository = WeatherRepository(
-            WeatherDatabase.getDatabase(applicationContext).weatherDao(),
-            RetrofitInstance.api
+        // Initialize both repositories
+        val localWeatherRepository = LocalWeatherRepository(
+            WeatherDatabase.getDatabase(applicationContext).weatherDao()
         )
+        val remoteWeatherRepository = RemoteWeatherRepository(RetrofitInstance.api)
 
         try {
-            repository.refreshWeather("CityName", "YourApiKey")
+            val weatherEntity = remoteWeatherRepository.fetchWeatherFromApi(44.34, 10.99,"f5f9f068f617f0e2e1c8597573c700c0")
+            localWeatherRepository.insertWeather(weatherEntity)
             return Result.success()
         } catch (e: Exception) {
             return Result.failure()
@@ -25,7 +27,6 @@ class WeatherWorker(appContext: Context, workerParams: WorkerParameters) :
     }
 }
 
-// To schedule periodic work
 fun scheduleWeatherWork(context: Context) {
     val workRequest = PeriodicWorkRequestBuilder<WeatherWorker>(6, TimeUnit.HOURS)
         .build()
