@@ -13,4 +13,8 @@ class RemoteWeatherRepository(private val apiService: WeatherApiService) {
             icon = response.weather[0].icon
         )
     }
+
+    suspend fun searchCities(query: String): CitySearchResponse {
+        return apiService.searchCities("Fremont", "f5f9f068f617f0e2e1c8597573c700c0")
+    }
 }

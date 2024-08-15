@@ -15,6 +15,12 @@ interface WeatherApiService {
         @Query("lon") cityLon: Double,
         @Query("appid") apiKey: String
     ): WeatherResponse
+
+    @GET("data/2.5/find")
+    suspend fun searchCities(
+        @Query("q") query: String,
+        @Query("appid") apiKey: String
+    ): CitySearchResponse
 }
 
 object RetrofitInstance {

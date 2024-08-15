@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.weatherapp.data.CitySearchResponse
 import com.example.weatherapp.data.LocalWeatherRepository
 import com.example.weatherapp.data.RemoteWeatherRepository
 import com.example.weatherapp.data.WeatherEntity
@@ -31,6 +32,14 @@ class WeatherViewModel(
             localWeatherRepository.insertWeather(weatherEntity)
             _weatherState.value = weatherEntity        }
     }
+
+    suspend fun getSuggestions(query: String): CitySearchResponse {
+        return remoteWeatherRepository.searchCities(query)
+    }
+
+//    suspend fun getSuggestions(query: String): List<String> {
+//        return remoteWeatherRepository.searchCities(query).map { it.name }
+//    }
 
     init {
         viewModelScope.launch {
