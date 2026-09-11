@@ -31,3 +31,8 @@ google-services.json
 
 # Android Profiling
 *.hprof
+
+# Local API credentials
+.env
+.env.*
+secrets.properties
