@@ -5,24 +5,28 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import androidx.work.WorkManager
 import androidx.work.PeriodicWorkRequestBuilder
+import com.example.weatherapp.BuildConfig
 import java.util.concurrent.TimeUnit
 
 class WeatherWorker(appContext: Context, workerParams: WorkerParameters) :
     CoroutineWorker(appContext, workerParams) {
 
     override suspend fun doWork(): Result {
-        // Initialize both repositories
         val localWeatherRepository = LocalWeatherRepository(
             WeatherDatabase.getDatabase(applicationContext).weatherDao()
         )
         val remoteWeatherRepository = RemoteWeatherRepository(RetrofitInstance.api)
 
-        try {
-            val weatherEntity = remoteWeatherRepository.fetchWeatherFromApi(44.34, 10.99,"f5f9f068f617f0e2e1c8597573c700c0")
+        return try {
+            val weatherEntity = remoteWeatherRepository.fetchWeatherFromApi(
+                44.34,
+                10.99,
+                BuildConfig.OPENWEATHER_API_KEY
+            )
             localWeatherRepository.insertWeather(weatherEntity)
-            return Result.success()
+            Result.success()
         } catch (e: Exception) {
-            return Result.failure()
+            Result.failure()
         }
     }
 }
