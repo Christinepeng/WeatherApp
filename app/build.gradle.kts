@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
@@ -5,11 +7,24 @@ plugins {
     id ("kotlin-kapt")
 }
 
+// Keep development credentials outside version control.
+val localConfig = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) file.inputStream().use { load(it) }
+}
+val openWeatherApiKey = providers.environmentVariable("OPENWEATHER_API_KEY")
+    .orElse(providers.provider { localConfig.getProperty("OPENWEATHER_API_KEY", "") })
+    .get()
+require(openWeatherApiKey.isEmpty() || openWeatherApiKey.matches(Regex("[A-Za-z0-9_-]+"))) {
+    "OPENWEATHER_API_KEY contains unsupported characters"
+}
+
 android {
     namespace = "com.example.weatherapp"
     compileSdk = 34
 
     defaultConfig {
+        buildConfigField("String", "OPENWEATHER_API_KEY", "\"$openWeatherApiKey\"")
         applicationId = "com.example.weatherapp"
         minSdk = 24
         targetSdk = 34
@@ -39,6 +54,7 @@ android {
         jvmTarget = "1.8"
     }
     buildFeatures {
+        buildConfig = true
         compose = true
     }
     composeOptions {
@@ -52,10 +68,6 @@ android {
 }
 
 dependencies {
-
-
-
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -72,7 +84,6 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-    // Jetpack Compose
     val composeBom = platform("androidx.compose:compose-bom:2024.06.00")
     implementation(composeBom)
     androidTestImplementation(composeBom)
@@ -86,25 +97,19 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
     implementation("androidx.compose.runtime:runtime-livedata")
 
-    // Room
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
     kapt("androidx.room:room-compiler:2.6.1")
     testImplementation("androidx.room:room-testing:2.6.1")
 
-    // Navigation
     implementation("androidx.navigation:navigation-compose:2.7.0")
 
-    // Retrofit
     implementation("com.squareup.retrofit2:retrofit:2.10.0")
     implementation("com.squareup.retrofit2:converter-gson:2.10.0")
 
-    // Coroutines for Retrofit
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.0")
 
-    // WorkManager
     implementation("androidx.work:work-runtime-ktx:2.9.1")
     androidTestImplementation("androidx.work:work-testing:2.9.1")
-
 }
