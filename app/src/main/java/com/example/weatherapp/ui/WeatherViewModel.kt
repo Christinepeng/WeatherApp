@@ -1,9 +1,9 @@
 package com.example.weatherapp.ui
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.weatherapp.BuildConfig
 import com.example.weatherapp.data.CitySearchResponse
 import com.example.weatherapp.data.LocalWeatherRepository
 import com.example.weatherapp.data.RemoteWeatherRepository
@@ -30,21 +30,23 @@ class WeatherViewModel(
                 icon = response.icon
             )
             localWeatherRepository.insertWeather(weatherEntity)
-            _weatherState.value = weatherEntity        }
+            _weatherState.value = weatherEntity
+        }
     }
 
     suspend fun getSuggestions(query: String): CitySearchResponse {
         return remoteWeatherRepository.searchCities(query)
     }
 
-//    suspend fun getSuggestions(query: String): List<String> {
-//        return remoteWeatherRepository.searchCities(query).map { it.name }
-//    }
-
     init {
         viewModelScope.launch {
-//            _weatherState.value = localWeatherRepository.getLatestWeather()
-            _weatherState.value = remoteWeatherRepository.fetchWeatherFromApi(44.34, 10.99,"f5f9f068f617f0e2e1c8597573c700c0")
+            if (BuildConfig.OPENWEATHER_API_KEY.isNotBlank()) {
+                _weatherState.value = remoteWeatherRepository.fetchWeatherFromApi(
+                    44.34,
+                    10.99,
+                    BuildConfig.OPENWEATHER_API_KEY
+                )
+            }
         }
     }
 }
